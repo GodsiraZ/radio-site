@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Radio App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  margin: 0;
+  font-family: system-ui;
+  background: linear-gradient(135deg, #1e1e2f, #e91e63);
+  color: white;
+  text-align: center;
+}
+
+.container {
+  padding: 20px;
+}
+
+h1 {
+  margin-bottom: 5px;
+}
+
+#nowPlaying {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+audio {
+  width: 100%;
+  margin: 20px 0;
+}
+
+.button {
+  display: block;
+  background: white;
+  color: black;
+  padding: 15px;
+  margin: 10px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.section {
+  display: none;
+}
+
+.active {
+  display: block;
+}
+
+input {
+  padding: 10px;
+  width: 70%;
+  border-radius: 8px;
+  border: none;
+}
+
+button {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #e91e63;
+  color: white;
+}
+
+#chatBox {
+  height: 200px;
+  overflow-y: auto;
+  background: rgba(0,0,0,0.3);
+  margin: 10px;
+  padding: 10px;
+  border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>🎧 My Radio</h1>
+  <div id="nowPlaying">Live On Air 🎙</div>
+
+  <!-- PLAYER -->
+  <audio controls autoplay>
+    <source src="https://your-stream-url.com/stream" type="audio/mpeg">
+  </audio>
+
+  <!-- MENU -->
+  <div onclick="show('home')" class="button">🏠 Home</div>
+  <div onclick="show('chat')" class="button">💬 Live Chat</div>
+  <div onclick="show('dj')" class="button">🎙 DJ Upload</div>
+
+  <!-- HOME -->
+  <div id="home" class="section active">
+    <p>Welcome to the station 🔥</p>
+  </div>
+
+  <!-- CHAT -->
+  <div id="chat" class="section">
+    <h3>💬 Live Chat</h3>
+    <div id="chatBox"></div>
+    <input id="msg" placeholder="Type message...">
+    <button onclick="sendMsg()">Send</button>
+  </div>
+
+  <!-- DJ -->
+  <div id="dj" class="section">
+    <h3>🎙 Upload Show</h3>
+    <input type="file" id="file">
+    <p id="uploadStatus"></p>
+  </div>
+
+</div>
+
+<!-- Firebase (for real chat, no backend needed) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+// 🔥 REPLACE THIS WITH YOUR FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+  projectId: "YOUR_PROJECT",
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Navigation
+function show(section) {
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+  document.getElementById(section).classList.add("active");
+}
+
+// Chat send
+function sendMsg() {
+  const input = document.getElementById("msg");
+  if (!input.value) return;
+
+  db.ref("messages").push(input.value);
+  input.value = "";
+}
+
+// Chat receive
+db.ref("messages").on("child_added", snapshot => {
+  const div = document.createElement("div");
+  div.textContent = snapshot.val();
+  document.getElementById("chatBox").appendChild(div);
+});
+
+// Fake metadata (replace with real API if you have one)
+const songs = ["Live DJ Mix 🎧", "Top Hits 🔥", "Chill Vibes 🌙"];
+setInterval(() => {
+  document.getElementById("nowPlaying").innerText =
+    "Now Playing: " + songs[Math.floor(Math.random() * songs.length)];
+}, 5000);
+
+// DJ upload (local only)
+document.getElementById("file").addEventListener("change", () => {
+  document.getElementById("uploadStatus").innerText = "File ready (demo only)";
+});
+</script>
+
+</body>
+</html>
