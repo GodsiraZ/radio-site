@@ -1,172 +1,205 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Radio App</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relax Radio | Your calm escape, anytime, anywhere.</title>
+    <meta name="description" content="Unwind, breathe, and let the world slow down. Stream calming music, sleep radio, and focus tracks 24/7.">
+    <style>
+        /* DESIGN SYSTEM & VARIABLES */
+        :root {
+            --primary: #AFCBFF;
+            --secondary: #D8CFFF;
+            --accent: #F5E6DA;
+            --bg-light: #FAFAFC;
+            --text-dark: #2A2A35;
+            --text-muted: #6B6B7B;
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --shadow-soft: 0 8px 32px rgba(175, 203, 255, 0.2);
+            --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
 
-<style>
-body {
-  margin: 0;
-  font-family: system-ui;
-  background: linear-gradient(135deg, #1e1e2f, #e91e63);
-  color: white;
-  text-align: center;
-}
+        [data-theme="dark"] {
+            --bg-light: #12121A;
+            --text-dark: #F5E6DA;
+            --text-muted: #A0A0B0;
+            --glass-bg: rgba(30, 30, 40, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
 
-.container {
-  padding: 20px;
-}
+        /* RESET & BASE */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background-color: var(--bg-light); color: var(--text-dark); overflow-x: hidden; transition: background-color 0.5s ease; line-height: 1.6; }
+        a { text-decoration: none; color: inherit; }
+        
+        /* BACKGROUND ANIMATION */
+        .ambient-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; overflow: hidden;
+            background: linear-gradient(135deg, var(--bg-light) 0%, var(--accent) 100%);
+            opacity: 0.4;
+        }
+        .blob {
+            position: absolute; border-radius: 50%; filter: blur(80px); animation: float 15s infinite alternate ease-in-out;
+        }
+        .blob-1 { width: 400px; height: 400px; background: var(--primary); top: -10%; left: -10%; }
+        .blob-2 { width: 500px; height: 500px; background: var(--secondary); bottom: -20%; right: -10%; animation-delay: -5s; }
 
-h1 {
-  margin-bottom: 5px;
-}
+        @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
 
-#nowPlaying {
-  font-size: 14px;
-  opacity: 0.8;
-}
+        /* NAVIGATION */
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 5%; position: relative; z-index: 10; }
+        .logo { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+        .nav-links { display: flex; gap: 2rem; align-items: center; }
+        .theme-toggle { background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--text-dark); }
 
-audio {
-  width: 100%;
-  margin: 20px 0;
-}
+        /* HERO SECTION */
+        .hero { text-align: center; padding: 8rem 5% 4rem; max-width: 800px; margin: 0 auto; position: relative; z-index: 1; }
+        .hero h1 { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 700; line-height: 1.1; margin-bottom: 1.5rem; letter-spacing: -1px; }
+        .hero p { font-size: 1.25rem; color: var(--text-muted); margin-bottom: 2.5rem; font-weight: 300; }
+        
+        .cta-group { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+        .btn { padding: 1rem 2rem; border-radius: 50px; font-weight: 500; font-size: 1.1rem; cursor: pointer; transition: var(--transition); border: none; }
+        .btn-primary { background: var(--text-dark); color: var(--bg-light); display: flex; align-items: center; gap: 10px; }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .btn-secondary { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-dark); backdrop-filter: blur(10px); }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.8); transform: translateY(-3px); }
 
-.button {
-  display: block;
-  background: white;
-  color: black;
-  padding: 15px;
-  margin: 10px;
-  border-radius: 10px;
-  text-decoration: none;
-  font-weight: bold;
-  cursor: pointer;
-}
+        /* MAIN PLAYER (GLASSMORPHISM) */
+        .player-container {
+            max-width: 600px; margin: 3rem auto; padding: 2rem; border-radius: 24px;
+            background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); box-shadow: var(--shadow-soft);
+            display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1;
+        }
+        .track-info { text-align: center; margin-bottom: 2rem; }
+        .track-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.25rem; }
+        .track-mood { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .controls { display: flex; align-items: center; gap: 2rem; }
+        .play-btn {
+            width: 80px; height: 80px; border-radius: 50%; background: var(--primary); color: white;
+            border: none; cursor: pointer; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 8px 24px rgba(175, 203, 255, 0.6); transition: var(--transition);
+        }
+        .play-btn:hover { transform: scale(1.05); }
+        .play-icon { width: 30px; height: 30px; fill: currentColor; }
+        
+        .visualizer { display: flex; gap: 4px; height: 30px; align-items: center; margin-top: 2rem; opacity: 0; transition: opacity 0.3s; }
+        .visualizer.active { opacity: 1; }
+        .bar { width: 4px; background: var(--secondary); border-radius: 4px; animation: bounce 1s infinite ease-in-out; }
+        .bar:nth-child(1) { height: 10px; animation-delay: 0.1s; }
+        .bar:nth-child(2) { height: 25px; animation-delay: 0.2s; }
+        .bar:nth-child(3) { height: 15px; animation-delay: 0.3s; }
+        .bar:nth-child(4) { height: 30px; animation-delay: 0.4s; }
+        .bar:nth-child(5) { height: 12px; animation-delay: 0.5s; }
 
-.section {
-  display: none;
-}
+        @keyframes bounce { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.4); } }
 
-.active {
-  display: block;
-}
+        /* TRUST BAR */
+        .trust-bar { text-align: center; padding: 2rem 0; color: var(--text-muted); font-size: 0.9rem; }
+        .trust-bar span { font-weight: 600; color: var(--text-dark); }
 
-input {
-  padding: 10px;
-  width: 70;
-  border-radius: 8px;
-  border: none;
-}
-
-button {
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  background: #e91e63;
-  color: white;
-}
-
-#chatBox {
-  height: 200px;
-  overflow-y: auto;
-  background: rgba(0,0,0,0.3);
-  margin: 10px;
-  padding: 10px;
-  border-radius: 10px;
-}
-</style>
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero { padding: 6rem 5% 2rem; }
+            .play-btn { width: 60px; height: 60px; }
+            .play-icon { width: 24px; height: 24px; }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<div class="container">
+    <div class="ambient-bg">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
 
-  <h1>🎧FM 89.50 MHz Relax Radio</h1>
-  <div id="nowPlaying">Live On Air 🎙</div>
+    <nav>
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Relax Radio
+        </div>
+        <div class="nav-links">
+            <a href="#listen">Listen Live</a>
+            <a href="#channels">Channels</a>
+            <a href="#app">Get the App</a>
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Dark Mode">🌙</button>
+    </nav>
 
-  <!-- PLAYER -->
-  <audio controls autoplay>
-    <source src="https://your-stream-url.com/stream" type="audio/mpeg">
-  </audio>
+    <section class="hero">
+        <h1>Unwind. Breathe. Let the world slow down.</h1>
+        <p>Your 24/7 sanctuary for sleep, focus, and stress relief. Scientifically curated soundscapes designed to calm your mind.</p>
+        <div class="cta-group">
+            <button class="btn btn-primary" onclick="togglePlay()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                Listen Live Now
+            </button>
+            <button class="btn btn-secondary">Download iOS / Android</button>
+        </div>
+    </section>
 
-  <!-- MENU -->
-  <div onclick="show('home')" class="button">🏠 Home</div>
-  <div onclick="show('chat')" class="button">💬 Live Chat</div>
-  <div onclick="show('dj')" class="button">🎙 DJ Upload</div>
+    <section class="player-container" id="listen">
+        <div class="track-info">
+            <div class="track-mood">Now Playing • Deep Sleep Channel</div>
+            <div class="track-title">Midnight Rainfall & Soft Piano</div>
+        </div>
+        
+        <div class="controls">
+            <button class="play-btn" id="mainPlayBtn" onclick="togglePlay()" aria-label="Play Music">
+                <svg class="play-icon" id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <svg class="play-icon" id="icon-pause" viewBox="0 0 24 24" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+        </div>
 
-  <!-- HOME -->
-  <div id="home" class="section active">
-    <p>Welcome to the station 🔥</p>
-  </div>
+        <div class="visualizer" id="visualizer">
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+    </section>
 
-  <!-- CHAT -->
-  <div id="chat" class="section">
-    <h3>💬 Live Chat</h3>
-    <div id="chatBox"></div>
-    <input id="msg" placeholder="Type message...">
-    <button onclick="sendMsg()">Send</button>
-  </div>
+    <div class="trust-bar">
+        Join <span>54,230+</span> listeners relaxing right now.
+    </div>
 
-  <!-- DJ -->
-  <div id="dj" class="section">
-    <h3>🎙 Upload Show</h3>
-    <input type="file" id="file">
-    <p id="uploadStatus"></p>
-  </div>
+    <script>
+        let isPlaying = false;
+        
+        // Audio Toggle Logic
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            const playIcon = document.getElementById('icon-play');
+            const pauseIcon = document.getElementById('icon-pause');
+            const visualizer = document.getElementById('visualizer');
+            
+            if (isPlaying) {
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
+                visualizer.classList.add('active');
+            } else {
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+                visualizer.classList.remove('active');
+            }
+        }
 
-</div>
-
-<!-- Firebase (for real chat, no backend needed) -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-<script>
-// 🔥 REPLACE THIS WITH YOUR FIREBASE CONFIG
-const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-  projectId: "YOUR_PROJECT",
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-// Navigation
-function show(section) {
-  document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
-  document.getElementById(section).classList.add("active");
-}
-
-// Chat send
-function sendMsg() {
-  const input = document.getElementById("msg");
-  if (!input.value) return;
-
-  db.ref("messages").push(input.value);
-  input.value = "";
-}
-
-// Chat receive
-db.ref("messages").on("child_added", snapshot => {
-  const div = document.createElement("div");
-  div.textContent = snapshot.val();
-  document.getElementById("chatBox").appendChild(div);
-});
-
-// Fake metadata (replace with real API if you have one)
-const songs = ["Live DJ Mix 🎧", "Top Hits 🔥", "Chill Vibes 🌙"];
-setInterval(() => {
-  document.getElementById("nowPlaying").innerText =
-    "Now Playing: " + songs[Math.floor(Math.random() * songs.length)];
-}, 5000);
-
-// DJ upload (local only)
-document.getElementById("file").addEventListener("change", () => {
-  document.getElementById("uploadStatus").innerText = "File ready (demo only)";
-});
-</script>
-
+        // Dark Mode Toggle Logic
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const btn = document.querySelector('.theme-toggle');
+            
+            if (currentTheme === 'dark') {
+                body.removeAttribute('data-theme');
+                btn.textContent = '🌙';
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                btn.textContent = '☀️';
+            }
+        }
+    </script>
 </body>
 </html>
